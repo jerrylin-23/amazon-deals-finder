@@ -40,8 +40,6 @@ class AmazonScraper:
     }
     
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update(self.HEADERS)
         self._cache = {}
         self._cache_ttl = 300  # 5 minutes
     
@@ -77,7 +75,10 @@ class AmazonScraper:
             url = f'https://www.amazon.ca/s?k={encoded_query}&page={page_num}'
             
             try:
-                response = self.session.get(url, timeout=10)
+                # Create fresh session for each request to avoid Amazon blocking
+                session = requests.Session()
+                session.headers.update(self.HEADERS)
+                response = session.get(url, timeout=10)
                 response.raise_for_status()
                 
                 soup = BeautifulSoup(response.content, 'lxml')
@@ -92,6 +93,8 @@ class AmazonScraper:
                     except Exception:
                         continue
                 
+                # Close session after use
+                session.close()
                 return page_products
                 
             except Exception as e:
