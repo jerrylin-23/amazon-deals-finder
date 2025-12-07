@@ -4,10 +4,7 @@ services:
     name: amazon-deals-db
     env: docker
     plan: free
-    databases:
-      - name: amazon_deals
-        databaseName: amazon_deals
-        user: amazon_deals_user
+    ipAllowList: []
 
   # Backend Web Service
   - type: web
