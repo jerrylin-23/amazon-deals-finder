@@ -49,15 +49,15 @@ class AmazonScraper:
         """Generate cache key for a search"""
         return hashlib.md5(f"{query}_{max_results}_{min_discount}".encode()).hexdigest()
     
-    def search_products(self, query: str, max_results: int = 15, min_discount: int = 0, max_pages: int = 1) -> List[Dict]:
+    def search_products(self, query: str, max_results: int = 30, min_discount: int = 0, max_pages: int = 2) -> List[Dict]:
         """
-        Search Amazon for products (optimized for Render free tier)
+        Search Amazon for products (balanced for Render free tier)
         
         Args:
             query: Search term (e.g., 'laptop', 'mechanical keyboard')
-            max_results: Maximum number of results to return (default: 15)
-            min_discount: Minimum discount percentage to filter by
-            max_pages: Maximum number of pages to scrape (default: 1 for Render)
+            max_results: Maximum number of results to return (default: 30)
+            min_discount: Minimum discount percentage to filter by (default: 0)
+            max_pages: Maximum number of pages to scrape (default: 2 for balance)
             
         Returns:
             List of product dictionaries
@@ -209,13 +209,13 @@ class AmazonScraper:
             'is_deal': discount_percent >= 15  # 15%+ is considered a deal
         }
     
-    def get_category_deals(self, category: str, min_discount: int = 15) -> List[Dict]:
-        """Get deals for a specific tech category (optimized for Render)"""
+    def get_category_deals(self, category: str, min_discount: int = 10) -> List[Dict]:
+        """Get deals for a specific tech category (balanced for Render)"""
         if category not in self.TECH_CATEGORIES:
             raise ValueError(f"Unknown category: {category}. Available: {list(self.TECH_CATEGORIES.keys())}")
         
         query = self.TECH_CATEGORIES[category]
-        return self.search_products(query, max_results=20, min_discount=min_discount, max_pages=1)
+        return self.search_products(query, max_results=30, min_discount=min_discount, max_pages=2)
     
     def get_all_categories(self) -> List[str]:
         """Get list of available categories"""
