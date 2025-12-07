@@ -77,7 +77,7 @@ class AmazonScraper:
             url = f'https://www.amazon.ca/s?k={encoded_query}&page={page_num}'
             
             try:
-                response = self.session.get(url, timeout=5)  # Shorter timeout for Render
+                response = self.session.get(url, timeout=8)  # Balanced timeout
                 response.raise_for_status()
                 
                 soup = BeautifulSoup(response.content, 'lxml')
@@ -98,8 +98,8 @@ class AmazonScraper:
                 print(f"Error on page {page_num}: {str(e)}")
                 return []
         
-        # Scrape pages (single worker for Render free tier to reduce CPU load)
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        # Scrape pages with moderate parallelism (balanced for both local and Render)
+        with ThreadPoolExecutor(max_workers=2) as executor:
             futures = {executor.submit(scrape_page, page): page for page in range(1, max_pages + 1)}
             
             for future in as_completed(futures):
