@@ -61,8 +61,7 @@ async def root():
         "endpoints": {
             "/api/search": "Search for products",
             "/api/categories": "Get available categories",
-            "/api/deals/{category}": "Get deals by category",
-            "/api/price-history/{asin}": "Get price history for a product"
+            "/api/deals/{category}": "Get deals by category"
         }
     }
 
@@ -150,29 +149,6 @@ async def get_category_deals(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/price-history/{asin}")
-async def get_price_history(asin: str):
-    """
-    Get historical price data for a product from CamelCamelCamel
-    
-    Args:
-        asin: Amazon ASIN (product ID)
-    """
-    try:
-        history = camel_scraper.get_price_history(asin)
-        
-        if not history:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Price history not found for ASIN: {asin}"
-            )
-        
-        return history
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
