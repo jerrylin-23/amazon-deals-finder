@@ -12,7 +12,6 @@ import uvicorn
 from pathlib import Path
 
 from scraper import AmazonScraper
-from camel_scraper import CamelScraper
 from database import get_db, init_db, engine
 import crud
 import models
@@ -41,9 +40,8 @@ async def startup():
     init_db()
     print("Database initialized successfully!")
 
-# Initialize scrapers
+# Initialize scraper
 scraper = AmazonScraper()
-camel_scraper = CamelScraper()
 
 # Mount frontend static files
 frontend_path = Path(__file__).parent.parent / "frontend"
@@ -80,9 +78,8 @@ async def get_categories():
 @app.get("/api/search")
 async def search_products(
     q: str = Query(..., description="Search query"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum results"),
-    min_discount: int = Query(0, ge=0, le=100, description="Minimum discount %"),
-    include_history: bool = Query(False, description="Include price history (slower)"),
+    max_results: int = Query(20, ge=1, le=100),
+    min_discount: int = Query(0, ge=0, le=100),
     db: Session = Depends(get_db)
 ):
     """
@@ -92,7 +89,6 @@ async def search_products(
         q: Search query (e.g., 'laptop', 'gaming mouse')
         max_results: Maximum number of results (1-100)
         min_discount: Minimum discount percentage (0-100)
-        include_history: Fetch price history from CamelCamelCamel (adds delay)
     """
     try:
         # Scrape Amazon for fresh product data
@@ -106,26 +102,6 @@ async def search_products(
                 crud.save_scraped_products_batch(db, products)
             except Exception as e:
                 print(f"Error batch saving products: {e}")
-        
-        # Optionally enrich with price history
-        if include_history:
-            for product in products:
-                if product.get('asin'):
-                    history = camel_scraper.get_price_history(product['asin'])
-                    if history:
-                        product['price_history'] = {
-                            'lowest_ever': history.get('price_stats', {}).get('lowest_amazon'),
-                            'highest_ever': history.get('price_stats', {}).get('highest_amazon'),
-                            'current_prices': history.get('current_prices'),
-                            'is_historical_low': False
-                        }
-                        
-                        # Check if at historical low
-                        if (product.get('current_price') and 
-                            history.get('price_stats', {}).get('lowest_amazon')):
-                            lowest = history['price_stats']['lowest_amazon']
-                            if product['current_price'] <= lowest + 1.0:  # Within $1
-                                product['price_history']['is_historical_low'] = True
         
         return {
             "query": q,
