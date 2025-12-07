@@ -49,15 +49,15 @@ class AmazonScraper:
         """Generate cache key for a search"""
         return hashlib.md5(f"{query}_{max_results}_{min_discount}_{max_pages}".encode()).hexdigest()
     
-    def search_products(self, query: str, max_results: int = 30, min_discount: int = 0, max_pages: int = 2) -> List[Dict]:
+    def search_products(self, query: str, max_results: int = 20, min_discount: int = 0, max_pages: int = 3) -> List[Dict]:
         """
-        Search Amazon for products (balanced for Render free tier)
+        Search Amazon for products (optimized with parallel scraping + caching)
         
         Args:
             query: Search term (e.g., 'laptop', 'mechanical keyboard')
-            max_results: Maximum number of results to return (default: 30)
-            min_discount: Minimum discount percentage to filter by (default: 0)
-            max_pages: Maximum number of pages to scrape (default: 2 for balance)
+            max_results: Maximum number of results to return
+            min_discount: Minimum discount percentage to filter by
+            max_pages: Maximum number of pages to scrape (default: 3)
             
         Returns:
             List of product dictionaries
@@ -77,7 +77,7 @@ class AmazonScraper:
             url = f'https://www.amazon.ca/s?k={encoded_query}&page={page_num}'
             
             try:
-                response = self.session.get(url, timeout=8)  # Balanced timeout
+                response = self.session.get(url, timeout=10)
                 response.raise_for_status()
                 
                 soup = BeautifulSoup(response.content, 'lxml')
@@ -98,8 +98,8 @@ class AmazonScraper:
                 print(f"Error on page {page_num}: {str(e)}")
                 return []
         
-        # Scrape pages with moderate parallelism (balanced for both local and Render)
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        # Scrape pages in parallel for speed
+        with ThreadPoolExecutor(max_workers=3) as executor:
             futures = {executor.submit(scrape_page, page): page for page in range(1, max_pages + 1)}
             
             for future in as_completed(futures):
@@ -209,13 +209,13 @@ class AmazonScraper:
             'is_deal': discount_percent >= 15  # 15%+ is considered a deal
         }
     
-    def get_category_deals(self, category: str, min_discount: int = 10) -> List[Dict]:
-        """Get deals for a specific tech category (balanced for Render)"""
+    def get_category_deals(self, category: str, min_discount: int = 15) -> List[Dict]:
+        """Get deals for a specific tech category"""
         if category not in self.TECH_CATEGORIES:
             raise ValueError(f"Unknown category: {category}. Available: {list(self.TECH_CATEGORIES.keys())}")
         
         query = self.TECH_CATEGORIES[category]
-        return self.search_products(query, max_results=30, min_discount=min_discount, max_pages=2)
+        return self.search_products(query, max_results=50, min_discount=min_discount)
     
     def get_all_categories(self) -> List[str]:
         """Get list of available categories"""
