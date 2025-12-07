@@ -33,13 +33,12 @@ app.add_middleware(
 )
 
 # Initialize database on startup
-# DISABLED - Using in-memory cache only
-# @app.on_event("startup")
-# async def startup():
-#     """Initialize database tables"""
-#     print("Initializing database...")
-#     init_db()
-#     print("Database initialized successfully!")
+@app.on_event("startup")
+async def startup():
+    """Initialize database tables"""
+    print("Initializing database...")
+    init_db()
+    print("Database initialized successfully!")
 
 # Initialize scraper
 scraper = AmazonScraper()
@@ -79,8 +78,8 @@ async def get_categories():
 async def search_products(
     q: str = Query(..., description="Search query"),
     max_results: int = Query(20, ge=1, le=100),
-    min_discount: int = Query(0, ge=0, le=100)
-    # db: Session = Depends(get_db)  # DISABLED
+    min_discount: int = Query(0, ge=0, le=100),
+    db: Session = Depends(get_db)
 ):
     """
     Search Amazon for products
@@ -91,14 +90,38 @@ async def search_products(
         min_discount: Minimum discount percentage (0-100)
     """
     try:
-        # Scrape Amazon (uses built-in 5-minute in-memory cache)
+        # CACHE-FIRST: Check database for recent results (last 10 minutes)
+        from datetime import datetime, timedelta
+        cache_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        
+        cached = db.query(models.Product).filter(
+            models.Product.title.ilike(f'%{q}%'),
+            models.Product.updated_at >= cache_cutoff
+        ).limit(max_results).all()
+        
+        if cached:
+            print(f"✓ CACHE HIT: {len(cached)} products")
+            return {
+                "query": q,
+                "count": len(cached),
+                "products": [{"asin": p.asin, "title": p.title, "url": p.url, "image_url": p.image_url, "current_price": None, "discount_percent": 0, "rating": p.rating, "is_prime": p.is_prime} for p in cached],
+                "cached": True
+            }
+        
+        # CACHE MISS: Scrape Amazon
+        print(f"✗ CACHE MISS: Scraping for '{q}'")
         products = scraper.search_products(q, max_results=max_results, min_discount=min_discount)
         
-        return {
-            "query": q,
-            "count": len(products),
-            "products": products
-        }
+        # Save to cache
+        if products:
+            for p in products:
+                p['category'] = 'search'
+            try:
+                crud.save_scraped_products_batch(db, products)
+            except:
+                pass
+        
+        return {"query": q, "count": len(products), "products": products, "cached": False}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -106,8 +129,8 @@ async def search_products(
 @app.get("/api/deals/{category}")
 async def get_category_deals(
     category: str,
-    min_discount: int = Query(15, ge=0, le=100, description="Minimum discount %")
-    # db: Session = Depends(get_db)  # DISABLED
+    min_discount: int = Query(15, ge=0, le=100, description="Minimum discount %"),
+    db: Session = Depends(get_db)
 ):
     """
     Get deals for a specific tech category
@@ -117,15 +140,37 @@ async def get_category_deals(
         min_discount: Minimum discount percentage
     """
     try:
-        # Scrape deals (uses built-in 5-minute in-memory cache)
+        # CACHE-FIRST: Check database
+        from datetime import datetime, timedelta
+        cache_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        
+        cached = db.query(models.Product).filter(
+            models.Product.category == category,
+            models.Product.updated_at >= cache_cutoff
+        ).limit(50).all()
+        
+        if cached:
+            print(f"✓ CACHE HIT: {len(cached)} {category} deals")
+            return {
+                "category": category,
+                "count": len(cached),
+                "deals": [{"asin": p.asin, "title": p.title, "url": p.url, "image_url": p.image_url, "current_price": None, "discount_percent": 0, "rating": p.rating, "is_prime": p.is_prime} for p in cached],
+                "cached": True
+            }
+        
+        # CACHE MISS: Scrape
+        print(f"✗ CACHE MISS: Scraping {category}")
         deals = scraper.get_category_deals(category, min_discount=min_discount)
         
-        return {
-            "category": category,
-            "min_discount": min_discount,
-            "count": len(deals),
-            "deals": deals
-        }
+        if deals:
+            for p in deals:
+                p['category'] = category
+            try:
+                crud.save_scraped_products_batch(db, deals)
+            except:
+                pass
+        
+        return {"category": category, "count": len(deals), "deals": deals, "cached": False}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
