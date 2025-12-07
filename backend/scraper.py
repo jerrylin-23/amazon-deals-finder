@@ -16,16 +16,33 @@ import hashlib
 class AmazonScraper:
     """Scrape Amazon product data (optimized with caching)"""
     
-    HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-    }
+    # Rotate between different User-Agents to avoid detection
+    USER_AGENTS = [
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    ]
     
+    def _get_headers(self):
+        """Get headers with random User-Agent"""
+        import random
+        return {
+            'User-Agent': random.choice(self.USER_AGENTS),
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-CA,en-US;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Cache-Control': 'max-age=0'
+        }
+    
+    HEADERS = USER_AGENTS[0]  # Fallback
     TECH_CATEGORIES = {
         'laptops': 'laptop',
         'monitors': 'monitor',
@@ -71,14 +88,18 @@ class AmazonScraper:
         
         def scrape_page(page_num):
             """Scrape a single page"""
+            import random
             encoded_query = quote_plus(query)
             url = f'https://www.amazon.ca/s?k={encoded_query}&page={page_num}'
             
+            # Small random delay to appear more human
+            time.sleep(random.uniform(0.5, 1.5))
+            
             try:
-                # Create fresh session for each request to avoid Amazon blocking
+                # Create fresh session with random User-Agent
                 session = requests.Session()
-                session.headers.update(self.HEADERS)
-                response = session.get(url, timeout=10)
+                session.headers.update(self._get_headers())
+                response = session.get(url, timeout=15)
                 response.raise_for_status()
                 
                 soup = BeautifulSoup(response.content, 'lxml')
