@@ -98,13 +98,14 @@ async def search_products(
         # Scrape Amazon for fresh product data
         products = scraper.search_products(q, max_results=max_results, min_discount=min_discount)
         
-        # Save scraped products to database
-        for product in products:
-            product['category'] = 'search'  # Tag as search result
+        # Save scraped products to database (batch commit for performance)
+        if products:
+            for product in products:
+                product['category'] = 'search'  # Tag as search result
             try:
-                crud.save_scraped_product(db, product)
+                crud.save_scraped_products_batch(db, products)
             except Exception as e:
-                print(f"Error saving product {product.get('asin')}: {e}")
+                print(f"Error batch saving products: {e}")
         
         # Optionally enrich with price history
         if include_history:
@@ -152,13 +153,14 @@ async def get_category_deals(
         # Scrape deals for this category
         deals = scraper.get_category_deals(category, min_discount=min_discount)
         
-        # Save to database
-        for product in deals:
-            product['category'] = category  # Tag with actual category
+        # Save to database (batch commit for performance)
+        if deals:
+            for product in deals:
+                product['category'] = category  # Tag with actual category
             try:
-                crud.save_scraped_product(db, product)
+                crud.save_scraped_products_batch(db, deals)
             except Exception as e:
-                print(f"Error saving product {product.get('asin')}: {e}")
+                print(f"Error batch saving category deals: {e}")
         
         return {
             "category": category,
