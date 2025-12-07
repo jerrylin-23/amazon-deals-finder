@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon.ca Deals Finder - Best Canadian Tech Deals</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🛍️</span>
+                    Amazon Deals Finder
+                </h1>
+                <p class="tagline">Discover the hottest Canadian tech deals on Amazon.ca</p>
+            </div>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input"
+                    placeholder="Search for tech products (e.g., laptop, mechanical keyboard, gaming mouse)...">
+                <button id="searchBtn" class="search-btn">
+                    <span class="btn-icon">🔍</span>
+                    Search
+                </button>
+            </div>
+
+            <div class="filters">
+                <label class="filter-label">
+                    Min Discount:
+                    <select id="discountFilter" class="filter-select">
+                        <option value="0">Any</option>
+                        <option value="10">10%+</option>
+                        <option value="15" selected>15%+</option>
+                        <option value="20">20%+</option>
+                        <option value="30">30%+</option>
+                        <option value="50">50%+</option>
+                    </select>
+                </label>
+
+                <label class="filter-label">
+                    Sort By:
+                    <select id="sortFilter" class="filter-select">
+                        <option value="relevance">Relevance</option>
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="price-low">Price (Low to High)</option>
+                        <option value="price-high">Price (High to Low)</option>
+                        <option value="discount-high">Discount % (High to Low)</option>
+                    </select>
+                </label>
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="categories-section">
+            <h2 class="section-title">Browse by Category</h2>
+            <div id="categoriesGrid" class="categories-grid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="results-section">
+            <div id="resultsHeader" class="results-header" style="display: none;">
+                <h2 id="resultsTitle" class="section-title">Deals</h2>
+                <p id="resultsCount" class="results-count"></p>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Finding the best deals...</p>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;"></div>
+
+            <div id="productsGrid" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
