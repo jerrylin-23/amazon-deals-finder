@@ -45,9 +45,9 @@ class AmazonScraper:
         self._cache = {}
         self._cache_ttl = 300  # 5 minutes
     
-    def _get_cache_key(self, query: str, max_results: int, min_discount: int) -> str:
+    def _get_cache_key(self, query: str, max_results: int, min_discount: int, max_pages: int = 2) -> str:
         """Generate cache key for a search"""
-        return hashlib.md5(f"{query}_{max_results}_{min_discount}".encode()).hexdigest()
+        return hashlib.md5(f"{query}_{max_results}_{min_discount}_{max_pages}".encode()).hexdigest()
     
     def search_products(self, query: str, max_results: int = 30, min_discount: int = 0, max_pages: int = 2) -> List[Dict]:
         """
@@ -63,7 +63,7 @@ class AmazonScraper:
             List of product dictionaries
         """
         # Check cache first
-        cache_key = self._get_cache_key(query, max_results, min_discount)
+        cache_key = self._get_cache_key(query, max_results, min_discount, max_pages)
         if cache_key in self._cache:
             cached_data, cached_time = self._cache[cache_key]
             if time.time() - cached_time < self._cache_ttl:
