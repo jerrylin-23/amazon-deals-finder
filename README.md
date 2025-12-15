@@ -99,6 +99,9 @@ python main.py
 
 **Deployed on Render:** [amazon-deals-finder Live App](https://amazon-deals-backend-8gq2.onrender.com/)
 
+
+> **⚠️ Performance Disclaimer:** Due to the resource constraints of the free-tier Render deployment, the service may take time to spin up (cold start latency), and AI analysis calls (Gemini API) can take **5-10 seconds** to complete. For the **best and fastest user experience**, we highly recommend running the application locally using the **Quick Start** guide.
+
 ---
 
 <div align="center">
