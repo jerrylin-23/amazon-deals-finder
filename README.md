@@ -80,14 +80,10 @@ python main.py
 ## 🗄️ Database Schema
 
 - **products:** Stores product information (ASIN, title, image, etc.)
-- **price_history:** Tracks price changes over time
+
 
 ## 📊 Features in Detail
 
-### Price History Tracking
-- Automatically fetches historical data from CamelCamelCamel
-- Detects when products hit their all-time low price
-- Stores price snapshots for trend analysis
 
 ### Optimized Scraping
 - Parallel page scraping (3x faster)
