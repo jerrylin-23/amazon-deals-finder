@@ -9,8 +9,6 @@ Find the best tech deals on Amazon.ca with automatic price history tracking and 
 ## ✨ Features
 
 - 🔍 Search thousands of products across tech categories
-- 📊 Automatic price history tracking with CamelCamelCamel integration
-- 🔥 "ALL TIME LOW" badge detection
 - 💾 PostgreSQL database for persistent storage
 - ⚡ Optimized scraping with parallel page processing
 - 🎯 Smart caching (5-minute TTL)
@@ -101,18 +99,17 @@ python main.py
 - Query optimization with indexes
 - Connection pooling for performance
 
-## 🚀 Deployment
+## 🚀 Live Demo
 
-See [DATABASE_SETUP.md](DATABASE_SETUP.md) for detailed deployment instructions.
+**Deployed on Render:** [amazon-deals-finder Live App](https://amazon-deals-backend-8gq2.onrender.com/)
 
-### Quick Deploy to Render
+---
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
-1. Click the button above
-2. Connect your GitHub account
-3. Database and backend will auto-deploy
-4. Done! Get your live URL
+<div align="center">
+  <a href="https://amazon-deals-backend-8gq2.onrender.com/" target="_blank">
+    <img src="https://img.shields.io/badge/View%20Live%20Demo-blue?style=for-the-badge&logo=render&logoColor=white" alt="View Live Demo on Render">
+  </a>
+</div>
 
 ## 🤝 Contributing
 
