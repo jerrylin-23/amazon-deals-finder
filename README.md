@@ -1,10 +1,7 @@
 # Amazon Deals Finder 🛍️
 
-Find the best tech deals on Amazon.ca with automatic price history tracking and historical low detection.
+Find the best tech deals on Amazon.ca.
 
-## 🚀 Live Demo
-
-**Deployed on Render:** [Coming Soon]
 
 ## ✨ Features
 
